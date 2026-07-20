@@ -36,8 +36,8 @@ class EnergyFlowCardEditor extends HTMLElement {
       { name: '_section_base', type: 'constant', label: 'Base Energy Sensors', required: false },
       { name: 'grid_feed_in_sensor', label: 'Grid Feed-In / Export (kW)', selector: { entity: { domain: 'sensor' } } },
       { name: 'grid_consumption_sensor', label: 'Grid Consumption / Import (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'battery_charge_sensor', label: 'Battery Charge Power (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'battery_discharge_sensor', label: 'Battery Discharge Power (kW)', selector: { entity: { domain: 'sensor' } } },
+      { name: 'battery_charge_sensor', label: 'Battery Charge Power (W/kW)', selector: { entity: { domain: 'sensor' } } },
+      { name: 'battery_discharge_sensor', label: 'Battery Discharge Power (W/kW)', selector: { entity: { domain: 'sensor' } } },
       { name: 'battery_soc_sensor', label: 'Battery State of Charge (%)', selector: { entity: { domain: 'sensor' } } },
       { name: 'load_power_sensor', label: 'Home Load Power (kW)', selector: { entity: { domain: 'sensor' } } },
       { name: 'inverter_state_sensor', label: 'Inverter State', selector: { entity: { domain: 'sensor' } } },
@@ -52,32 +52,11 @@ class EnergyFlowCardEditor extends HTMLElement {
       // -- Section: Inverter Details ---------------------------------------
       { name: '_section_inv_det', type: 'constant', label: 'Inverter Details', required: false },
       { name: 'inverter_temp_sensor', label: 'Inverter Temperature (°C)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'ambient_temp_sensor', label: 'Ambient Temperature (°C)', selector: { entity: { domain: 'sensor' } } },
       { name: 'battery_temp_sensor', label: 'Battery Temperature (°C)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'cell_temp_low_sensor', label: 'Battery Cell Temp Low (°C)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'cell_temp_high_sensor', label: 'Battery Cell Temp High (°C)', selector: { entity: { domain: 'sensor' } } },
-      // -- Section: Grid Details -------------------------------------------
-      { name: '_section_grid', type: 'constant', label: 'Grid Details', required: false },
-      { name: 'grid_voltage_sensor', label: 'Grid Voltage (V)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'grid_current_sensor', label: 'Grid Current (A)', selector: { entity: { domain: 'sensor' } } },
       // -- Section: Top Right Details --------------------------------------
       { name: '_section_top', type: 'constant', label: 'Top Right Details', required: false },
       { name: 'battery_soh_sensor', label: 'Battery State of Health (%)', selector: { entity: { domain: 'sensor' } } },
       { name: 'inverter_fault_sensor', label: 'Inverter Fault Code', selector: { entity: { domain: 'sensor' } } },
-      // -- Section: Solar / PV Details -------------------------------------
-      { name: '_section_pv', type: 'constant', label: 'Solar / PV Details', required: false },
-      { name: 'pv1_power_sensor', label: 'PV1 Power (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv1_current_sensor', label: 'PV1 Current (A)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv1_voltage_sensor', label: 'PV1 Voltage (V)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv2_power_sensor', label: 'PV2 Power (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv2_current_sensor', label: 'PV2 Current (A)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv2_voltage_sensor', label: 'PV2 Voltage (V)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv3_power_sensor', label: 'PV3 Power (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv3_current_sensor', label: 'PV3 Current (A)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv3_voltage_sensor', label: 'PV3 Voltage (V)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv4_power_sensor', label: 'PV4 Power (kW)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv4_current_sensor', label: 'PV4 Current (A)', selector: { entity: { domain: 'sensor' } } },
-      { name: 'pv4_voltage_sensor', label: 'PV4 Voltage (V)', selector: { entity: { domain: 'sensor' } } },
       // -- Section: Visual Effects -----------------------------------------
       { name: '_section_vis', type: 'constant', label: 'Visual Effects', required: false },
       { name: 'weather_entity', label: 'Weather Entity (for cloud/rain effects)', selector: { entity: { domain: 'weather' } } },
@@ -91,8 +70,8 @@ class EnergyFlowCardEditor extends HTMLElement {
       { section: 'Base Energy Sensors' },
       { key: 'grid_feed_in_sensor', label: 'Grid Feed-In / Export (kW)', placeholder: 'sensor.foxessinverter_feed_in' },
       { key: 'grid_consumption_sensor', label: 'Grid Consumption / Import (kW)', placeholder: 'sensor.foxessinverter_grid_consumption' },
-      { key: 'battery_charge_sensor', label: 'Battery Charge Power (kW)', placeholder: 'sensor.foxessinverter_battery_charge' },
-      { key: 'battery_discharge_sensor', label: 'Battery Discharge Power (kW)', placeholder: 'sensor.foxessinverter_rpower' },
+      { key: 'battery_charge_sensor', label: 'Battery Charge Power (W/kW)', placeholder: 'sensor.foxessinverter_battery_charge' },
+      { key: 'battery_discharge_sensor', label: 'Battery Discharge Power (W/kW)', placeholder: 'sensor.foxessinverter_battery_discharge' },
       { key: 'battery_soc_sensor', label: 'Battery State of Charge (%)', placeholder: 'sensor.foxessinverter_battery_soc' },
       { key: 'load_power_sensor', label: 'Home Load Power (kW)', placeholder: 'sensor.foxessinverter_load_power' },
       { key: 'inverter_state_sensor', label: 'Inverter State (on/off grid)', placeholder: 'sensor.foxessinverter_inverter_state' },
@@ -105,29 +84,10 @@ class EnergyFlowCardEditor extends HTMLElement {
       { key: 'evc_unplugged_status', label: 'EV Charger Unplugged Status', placeholder: 'Unplugged' },
       { section: 'Inverter Details' },
       { key: 'inverter_temp_sensor', label: 'Inverter Temperature (°C)', placeholder: 'sensor.foxessinverter_invtemp' },
-      { key: 'ambient_temp_sensor', label: 'Ambient Temperature (°C)', placeholder: 'sensor.foxessinverter_ambtemp' },
       { key: 'battery_temp_sensor', label: 'Battery Temperature (°C)', placeholder: 'sensor.foxessinverter_battery_temp' },
-      { key: 'cell_temp_low_sensor', label: 'Battery Cell Temp Low (°C)', placeholder: 'sensor.foxessinverter_bms_cell_temp_low' },
-      { key: 'cell_temp_high_sensor', label: 'Battery Cell Temp High (°C)', placeholder: 'sensor.foxessinverter_bms_cell_temp_high' },
-      { section: 'Grid Details' },
-      { key: 'grid_voltage_sensor', label: 'Grid Voltage (V)', placeholder: 'sensor.foxessinverter_rvolt' },
-      { key: 'grid_current_sensor', label: 'Grid Current (A)', placeholder: 'sensor.foxessinverter_rcurrent' },
       { section: 'Top Right Details' },
       { key: 'battery_soh_sensor', label: 'Battery State of Health (%)', placeholder: 'sensor.foxessinverter_battery_soh' },
       { key: 'inverter_fault_sensor', label: 'Inverter Fault Code', placeholder: 'sensor.foxessinverter_inverter_fault_code' },
-      { section: 'Solar / PV Details' },
-      { key: 'pv1_power_sensor', label: 'PV1 Power (kW)', placeholder: 'sensor.foxessinverter_pv1_power' },
-      { key: 'pv1_current_sensor', label: 'PV1 Current (A)', placeholder: 'sensor.foxessinverter_pv1_current' },
-      { key: 'pv1_voltage_sensor', label: 'PV1 Voltage (V)', placeholder: 'sensor.foxessinverter_pv1_voltage' },
-      { key: 'pv2_power_sensor', label: 'PV2 Power (kW)', placeholder: 'sensor.foxessinverter_pv2_power' },
-      { key: 'pv2_current_sensor', label: 'PV2 Current (A)', placeholder: 'sensor.foxessinverter_pv2_current' },
-      { key: 'pv2_voltage_sensor', label: 'PV2 Voltage (V)', placeholder: 'sensor.foxessinverter_pv2_voltage' },
-      { key: 'pv3_power_sensor', label: 'PV3 Power (kW)', placeholder: 'sensor.foxessinverter_pv3_power' },
-      { key: 'pv3_current_sensor', label: 'PV3 Current (A)', placeholder: 'sensor.foxessinverter_pv3_current' },
-      { key: 'pv3_voltage_sensor', label: 'PV3 Voltage (V)', placeholder: 'sensor.foxessinverter_pv3_voltage' },
-      { key: 'pv4_power_sensor', label: 'PV4 Power (kW)', placeholder: 'sensor.foxessinverter_pv4_power' },
-      { key: 'pv4_current_sensor', label: 'PV4 Current (A)', placeholder: 'sensor.foxessinverter_pv4_current' },
-      { key: 'pv4_voltage_sensor', label: 'PV4 Voltage (V)', placeholder: 'sensor.foxessinverter_pv4_voltage' },
       { section: 'Visual Effects' },
       { key: 'weather_entity', label: 'Weather Entity (for cloud/rain effects)', placeholder: 'weather.your_location_hourly' },
       { key: 'sun_entity', label: 'Sun Entity (day/night cycle)', placeholder: 'sun.sun' },
@@ -216,32 +176,15 @@ class EnergyFlowCard extends HTMLElement {
       grid_feed_in_sensor: 'sensor.foxessinverter_feed_in',
       grid_consumption_sensor: 'sensor.foxessinverter_grid_consumption',
       battery_charge_sensor: 'sensor.foxessinverter_battery_charge',
-      battery_discharge_sensor: 'sensor.foxessinverter_rpower',
+      battery_discharge_sensor: 'sensor.foxessinverter_battery_discharge',
       battery_soc_sensor: 'sensor.foxessinverter_battery_soc',
       load_power_sensor: 'sensor.foxessinverter_load_power',
       inverter_temp_sensor: 'sensor.foxessinverter_invtemp',
-      ambient_temp_sensor: 'sensor.foxessinverter_ambtemp',
       battery_temp_sensor: 'sensor.foxessinverter_battery_temp',
-      cell_temp_low_sensor: 'sensor.foxessinverter_bms_cell_temp_low',
-      cell_temp_high_sensor: 'sensor.foxessinverter_bms_cell_temp_high',
-      grid_voltage_sensor: 'sensor.foxessinverter_rvolt',
-      grid_current_sensor: 'sensor.foxessinverter_rcurrent',
       battery_soh_sensor: 'sensor.foxessinverter_battery_soh',
       inverter_fault_sensor: 'sensor.foxessinverter_inverter_fault_code',
       inverter_state_sensor: 'sensor.foxessinverter_inverter_state',
       work_mode_select: 'select.foxessinverter_work_mode',
-      pv1_power_sensor: 'sensor.foxessinverter_pv1_power',
-      pv1_current_sensor: 'sensor.foxessinverter_pv1_current',
-      pv1_voltage_sensor: 'sensor.foxessinverter_pv1_voltage',
-      pv2_power_sensor: 'sensor.foxessinverter_pv2_power',
-      pv2_current_sensor: 'sensor.foxessinverter_pv2_current',
-      pv2_voltage_sensor: 'sensor.foxessinverter_pv2_voltage',
-      pv3_power_sensor: 'sensor.foxessinverter_pv3_power',
-      pv3_current_sensor: 'sensor.foxessinverter_pv3_current',
-      pv3_voltage_sensor: 'sensor.foxessinverter_pv3_voltage',
-      pv4_power_sensor: 'sensor.foxessinverter_pv4_power',
-      pv4_current_sensor: 'sensor.foxessinverter_pv4_current',
-      pv4_voltage_sensor: 'sensor.foxessinverter_pv4_voltage',
       sun_entity: 'sun.sun',
       weather_entity: 'weather.alexandra_hills_hourly',
       evc_power_sensor: '',
@@ -372,6 +315,21 @@ class EnergyFlowCard extends HTMLElement {
     return Number.isFinite(v) ? v : null;
   }
 
+  // Convert a power sensor to watts using its unit_of_measurement when available.
+  // FoxESS entities may report W or kW; treating W as kW caused 391 W to show as 391.00 kW.
+  _powerToWatts(entityId, fallback = 0) {
+    if (!entityId || !this._hass) return fallback;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return fallback;
+    const v = parseFloat(stateObj.state);
+    if (!Number.isFinite(v)) return fallback;
+    const unit = String(stateObj.attributes?.unit_of_measurement || '').trim().toLowerCase();
+    if (unit === 'w') return Math.abs(v);
+    if (unit === 'kw') return Math.abs(v) * 1000;
+    // No unit: values >= 50 are almost certainly watts (home batteries rarely exceed ~50 kW)
+    return Math.abs(v) >= 50 ? Math.abs(v) : Math.abs(v) * 1000;
+  }
+
   //  Format helpers 
   _fmtVal(w) { return w >= 1000 ? (w / 1000).toFixed(2) : Math.round(w); }
   _fmtUnit(w) { return w >= 1000 ? 'kW' : 'W'; }
@@ -396,37 +354,16 @@ class EnergyFlowCard extends HTMLElement {
     const grid_exp_w  = grid_exp_kw * 1000;
     const grid_imp_w  = grid_imp_kw * 1000;
     const grid_w      = grid_imp_w > 0 ? grid_imp_w : grid_exp_w > 0 ? -grid_exp_w : 0;
-    const bat_chg_kw  = s(c.battery_charge_sensor);
-    const bat_dis_kw  = s(c.battery_discharge_sensor);
-    const bat_chg_w   = bat_chg_kw * 1000;
-    const bat_dis_w   = bat_dis_kw * 1000;
+    const bat_chg_w   = this._powerToWatts(c.battery_charge_sensor);
+    const bat_dis_w   = this._powerToWatts(c.battery_discharge_sensor);
     const bPct        = Math.min(100, Math.max(0, s(c.battery_soc_sensor)));
     const home_w      = s(c.load_power_sensor) * 1000;
     const inv_temp    = s(c.inverter_temp_sensor);
-    const amb_temp    = s(c.ambient_temp_sensor);
     const bat_temp    = s(c.battery_temp_sensor);
-    const cell_temp_low   = this._stateNumber(c.cell_temp_low_sensor);
-    const cell_temp_high  = this._stateNumber(c.cell_temp_high_sensor);
-    const hasCellTempLow  = cell_temp_low !== null;
-    const hasCellTempHigh = cell_temp_high !== null;
-    const grid_volt   = s(c.grid_voltage_sensor);
-    const grid_curr   = s(c.grid_current_sensor);
     const bat_soh     = s(c.battery_soh_sensor);
     const inv_fault   = ss(c.inverter_fault_sensor);
     const inv_state   = ss(c.inverter_state_sensor);
     const workMode    = ss(c.work_mode_select, 'Unknown');
-    const pv1_power_kw = s(c.pv1_power_sensor);
-    const pv1_current  = s(c.pv1_current_sensor);
-    const pv1_voltage  = s(c.pv1_voltage_sensor);
-    const pv2_power_kw = s(c.pv2_power_sensor);
-    const pv2_current  = s(c.pv2_current_sensor);
-    const pv2_voltage  = s(c.pv2_voltage_sensor);
-    const pv3_power_kw = s(c.pv3_power_sensor);
-    const pv3_current  = s(c.pv3_current_sensor);
-    const pv3_voltage  = s(c.pv3_voltage_sensor);
-    const pv4_power_kw = s(c.pv4_power_sensor);
-    const pv4_current  = s(c.pv4_current_sensor);
-    const pv4_voltage  = s(c.pv4_voltage_sensor);
     const evcPowerConfigured = !!c.evc_power_sensor;
     const evcStatusConfigured = !!c.evc_status_sensor;
     const evc_power_kw = this._stateNumber(c.evc_power_sensor);
@@ -668,9 +605,6 @@ class EnergyFlowCard extends HTMLElement {
     const SLINE_COLOR = 'rgba(255,255,255,0.35)';
     const _ovLabel = (bgIsDay && !c.background_image) ? '#6b7280' : '#cccccc';
     const _ovValue = (bgIsDay && !c.background_image) ? '#5b6169' : '#ffffff';
-    const _pvLabel = (bgIsDay && !c.background_image) ? '#cccccc' : '#cccccc';
-    const _pvValue = (bgIsDay && !c.background_image) ? '#ffffff' : '#ffffff';
-    const _tmpValue = (bgIsDay && !c.background_image) ? '#62a3f3' : '#bedbff';
 
     const _cdx = JX - INV_X, _cdy = JY - INV_Y;
     const _clen = Math.sqrt(_cdx*_cdx + _cdy*_cdy);
@@ -733,12 +667,8 @@ class EnergyFlowCard extends HTMLElement {
     // about our ~30 sensors.  Sky gradient refreshes once per minute.
     const _renderKey = [
       solar_w, grid_imp_w, grid_exp_w, bat_chg_w, bat_dis_w, home_w, bPct,
-      inv_temp, amb_temp, bat_temp, hasCellTempLow, cell_temp_low, hasCellTempHigh, cell_temp_high, bat_soh,
-      inv_state, inv_fault, workMode, grid_volt, grid_curr,
-      pv1_power_kw, pv1_current, pv1_voltage,
-      pv2_power_kw, pv2_current, pv2_voltage,
-      pv3_power_kw, pv3_current, pv3_voltage,
-      pv4_power_kw, pv4_current, pv4_voltage,
+      inv_temp, bat_temp, bat_soh,
+      inv_state, inv_fault, workMode,
       evcPowerConfigured, evc_power_kw, evcStatusConfigured, evc_status, evcUnpluggedStatus, evcPluggedIn,
       dayCycleOn, sunEntity, sunState, Math.round(sunElevation * 10) / 10, sunRising,
       overlayVisible, weatherState, c.background_image ? bgImage : bgImageKey,
@@ -1066,20 +996,6 @@ class EnergyFlowCard extends HTMLElement {
             ${c.battery_temp_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(1, 8, 'batTmpFadeIn', 'batTmpFadeOut')}">
               <text x="256" y="246" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_ovLabel}">Batt. Tmp</text>
               <text x="256" y="265" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="16" fill="${_ovValue}">${bat_temp}<tspan dx="2" font-size="11" font-weight="400" fill="${_ovLabel}">°C</tspan></text>
-              ${hasCellTempLow ? `<text x="255" y="285" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="13" fill="${_tmpValue}"><tspan dx="1" font-size="11" font-weight="400" fill="${_ovLabel}">low </tspan>${cell_temp_low}<tspan dx="1" font-size="10" font-weight="400" fill="${_ovLabel}">°C</tspan></text>` : ''}
-              ${hasCellTempHigh ? `<text x="255" y="${hasCellTempLow ? 302 : 285}" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="13" fill="#ffa8a8"><tspan dx="1" font-size="11" font-weight="400" fill="${_ovLabel}">high </tspan>${cell_temp_high}<tspan dx="1" font-size="10" font-weight="400" fill="${_ovLabel}">°C</tspan></text>` : ''}
-            </g>` : ''}
-            ${c.grid_voltage_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(2, 8, 'grdVolFadeIn', 'grdVolFadeOut')}">
-              <text x="${GRD_EXIT_X + 12}" y="${GRD_EXIT_Y - 23}" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="#ccc">Grid Vol</text>
-              <text x="${GRD_EXIT_X + 12}" y="${GRD_EXIT_Y - 4}" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="16" fill="#fff">${grid_volt}<tspan dx="2" font-size="11" font-weight="400" fill="#ccc">V</tspan></text>
-            </g>` : ''}
-            ${c.grid_current_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(3, 8, 'rtlFadeIn', 'rtlFadeOut')}">
-              <text x="${INV_X - 58}" y="${INV_Y - 43}" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_ovLabel}">Inv. Curr</text>
-              <text x="${INV_X - 58}" y="${INV_Y - 24}" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="16" fill="${_ovValue}">${grid_curr}<tspan dx="2" font-size="11" font-weight="400" fill="${_ovLabel}">A</tspan></text>
-            </g>` : ''}
-            ${c.ambient_temp_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(4, 8, 'rtlFadeIn', 'rtlFadeOut')}">
-              <text x="${INV_X - 74}" y="${INV_Y + 17}" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_ovLabel}">Amb. Tmp</text>
-              <text x="${INV_X - 68}" y="${INV_Y + 36}" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="16" fill="${_ovValue}">${amb_temp}<tspan dx="2" font-size="11" font-weight="400" fill="${_ovLabel}">°C</tspan></text>
             </g>` : ''}
             ${c.battery_soh_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(5)}">
               <text x="585" y="18" text-anchor="end" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="#ccc">Batt. Health</text>
@@ -1092,40 +1008,6 @@ class EnergyFlowCard extends HTMLElement {
               ${c.weather_entity ? `<text x="585" y="94" text-anchor="end" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="#ccc">Weather</text>
               <text x="585" y="110" text-anchor="end" font-family="sans-serif" font-weight="700" font-size="14"
                 fill="${weatherRainy ? '#93c5fd' : weatherCloudy ? '#d1d5db' : weatherFoggy ? '#e5e7eb' : '#34d399'}">${weatherState || 'clear'}</text>` : ''}
-            </g>` : ''}
-            ${(c.pv1_power_sensor || c.pv2_power_sensor || c.pv3_power_sensor || c.pv4_power_sensor) ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(8, 8)}">
-              <line x1="348" y1="62" x2="425" y2="165" stroke="#828282" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
-            </g>
-            <g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(7, 8)}">
-              <line x1="270" y1="135" x2="488" y2="94" stroke="#828282" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
-            </g>` : ''}
-            ${c.pv1_power_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(7, 8)}">
-              <g>
-                <text x="280" y="77" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_pvLabel}">PV1 Power</text>
-                <text x="280" y="95" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="15" fill="${_pvValue}">${pv1_power_kw.toFixed(2)}<tspan dx="2" font-size="10" font-weight="400" fill="${_pvValue}">kW</tspan></text>
-                <text x="280" y="112" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="12" fill="${_pvValue}">${pv1_current}<tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">A</tspan><tspan dx="6" font-weight="700" font-size="12" fill="${_pvValue}">${pv1_voltage}</tspan><tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">V</tspan></text>
-              </g>
-            </g>` : ''}
-            ${c.pv2_power_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(7, 8)}">
-              <g>
-                <text x="390" y="61" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_pvLabel}">PV2 Power</text>
-                <text x="390" y="79" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="15" fill="${_pvValue}">${pv2_power_kw.toFixed(2)}<tspan dx="2" font-size="10" font-weight="400" fill="${_pvValue}">kW</tspan></text>
-                <text x="390" y="96" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="12" fill="${_pvValue}">${pv2_current}<tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">A</tspan><tspan dx="6" font-weight="700" font-size="12" fill="${_pvValue}">${pv2_voltage}</tspan><tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">V</tspan></text>
-              </g>
-            </g>` : ''}
-            ${c.pv3_power_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(9, 8)}">
-              <g>
-                <text x="330" y="136" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_pvLabel}">PV3 Power</text>
-                <text x="330" y="154" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="15" fill="${_pvValue}">${pv3_power_kw.toFixed(2)}<tspan dx="2" font-size="10" font-weight="400" fill="${_pvValue}">kW</tspan></text>
-                <text x="330" y="172" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="12" fill="${_pvValue}">${pv3_current}<tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">A</tspan><tspan dx="6" font-weight="700" font-size="12" fill="${_pvValue}">${pv3_voltage}</tspan><tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">V</tspan></text>
-              </g>
-            </g>` : ''}
-            ${c.pv4_power_sensor ? `<g opacity="${overlayVisible ? '1' : '0'}" style="${_dAnim(10, 8)}">
-              <g>
-                <text x="430" y="116" text-anchor="start" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="${_pvLabel}">PV4 Power</text>
-                <text x="430" y="134" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="15" fill="${_pvValue}">${pv4_power_kw.toFixed(2)}<tspan dx="2" font-size="10" font-weight="400" fill="${_pvValue}">kW</tspan></text>
-                <text x="430" y="152" text-anchor="start" font-family="sans-serif" font-weight="700" font-size="12" fill="${_pvValue}">${pv4_current}<tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">A</tspan><tspan dx="6" font-weight="700" font-size="12" fill="${_pvValue}">${pv4_voltage}</tspan><tspan dx="1" font-size="10" font-weight="400" fill="${_pvValue}">V</tspan></text>
-              </g>
             </g>` : ''}
 
             ${evcVisible ? `<g class="evc-metrics">

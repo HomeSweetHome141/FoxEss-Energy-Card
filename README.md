@@ -19,7 +19,7 @@ Best used if you are using the [FoxESS - Modbus](https://github.com/nathanmarlor
 - Live weather clouds and rain overlay (sunny/Rainy/Cloudy states)
 - Optional EV charger power and status metrics above the garage
 - Built-in day/night and EV plugged/unplugged background variants
-- Detail overlay: MPPT/PV data, system temps, fault codes, battery health and more
+- Detail overlay: system temps, fault codes, battery health and more
 - Force Charge / Force Discharge work mode indicators and unique animations
 - Fully configurable — map any sensor to any field in the visual editor
 
@@ -88,7 +88,7 @@ type: custom:energy-flow-card
 grid_feed_in_sensor: sensor.foxessinverter_feed_in
 grid_consumption_sensor: sensor.foxessinverter_grid_consumption
 battery_charge_sensor: sensor.foxessinverter_battery_charge
-battery_discharge_sensor: sensor.foxessinverter_rpower
+battery_discharge_sensor: sensor.foxessinverter_battery_discharge
 battery_soc_sensor: sensor.foxessinverter_battery_soc
 load_power_sensor: sensor.foxessinverter_load_power
 inverter_state_sensor: sensor.foxessinverter_inverter_state
@@ -101,29 +101,10 @@ evc_status_sensor: sensor.ev_charger_status
 evc_unplugged_status: Unplugged
 # Inverter Details
 inverter_temp_sensor: sensor.foxessinverter_invtemp
-ambient_temp_sensor: sensor.foxessinverter_ambtemp
 battery_temp_sensor: sensor.foxessinverter_battery_temp
-cell_temp_low_sensor: sensor.foxessinverter_bms_cell_temp_low
-cell_temp_high_sensor: sensor.foxessinverter_bms_cell_temp_high
-# Grid Details
-grid_voltage_sensor: sensor.foxessinverter_rvolt
-grid_current_sensor: sensor.foxessinverter_rcurrent
 # Top Right Details
 battery_soh_sensor: sensor.foxessinverter_battery_soh
 inverter_fault_sensor: sensor.foxessinverter_inverter_fault_code
-# Solar / PV Details
-pv1_power_sensor: sensor.foxessinverter_pv1_power
-pv1_current_sensor: sensor.foxessinverter_pv1_current
-pv1_voltage_sensor: sensor.foxessinverter_pv1_voltage
-pv2_power_sensor: sensor.foxessinverter_pv2_power
-pv2_current_sensor: sensor.foxessinverter_pv2_current
-pv2_voltage_sensor: sensor.foxessinverter_pv2_voltage
-pv3_power_sensor: sensor.foxessinverter_pv3_power
-pv3_current_sensor: sensor.foxessinverter_pv3_current
-pv3_voltage_sensor: sensor.foxessinverter_pv3_voltage
-pv4_power_sensor: sensor.foxessinverter_pv4_power
-pv4_current_sensor: sensor.foxessinverter_pv4_current
-pv4_voltage_sensor: sensor.foxessinverter_pv4_voltage
 # Visual Effects
 weather_entity: weather.alexandra_hills_hourly
 sun_entity: sun.sun
@@ -137,8 +118,8 @@ sun_entity: sun.sun
 |-----|-------------|--------|
 | `grid_feed_in_sensor` | Grid export / feed-in in **kW** | `sensor` |
 | `grid_consumption_sensor` | Grid import / consumption in **kW** | `sensor` |
-| `battery_charge_sensor` | Battery charge power in **kW** | `sensor` |
-| `battery_discharge_sensor` | Battery discharge power in **kW** | `sensor` |
+| `battery_charge_sensor` | Battery charge power in **W** or **kW** (unit detected automatically) | `sensor` |
+| `battery_discharge_sensor` | Battery discharge power in **W** or **kW** (unit detected automatically) | `sensor` |
 | `battery_soc_sensor` | Battery state of charge **%** | `sensor` |
 | `load_power_sensor` | Home load power in **kW** | `sensor` |
 | `inverter_state_sensor` | Inverter state string | `sensor` |
@@ -159,17 +140,7 @@ sun_entity: sun.sun
 | Key | Description | Domain |
 |-----|-------------|--------|
 | `inverter_temp_sensor` | Inverter temperature °C | `sensor` |
-| `ambient_temp_sensor` | Ambient temperature °C | `sensor` |
 | `battery_temp_sensor` | Battery temperature °C | `sensor` |
-| `cell_temp_low_sensor` | Battery cell low temp °C | `sensor` |
-| `cell_temp_high_sensor` | Battery cell high temp °C | `sensor` |
-
-**Grid Details**
-
-| Key | Description | Domain |
-|-----|-------------|--------|
-| `grid_voltage_sensor` | Grid voltage V | `sensor` |
-| `grid_current_sensor` | Grid current A | `sensor` |
 
 **Top Right Details**
 
@@ -177,14 +148,6 @@ sun_entity: sun.sun
 |-----|-------------|--------|
 | `battery_soh_sensor` | Battery state of health % | `sensor` |
 | `inverter_fault_sensor` | Inverter fault code | `sensor` |
-
-**Solar / PV Details**
-
-| Key | Description | Domain |
-|-----|-------------|--------|
-| `pv1_power_sensor` … `pv4_power_sensor` | PV string power kW | `sensor` |
-| `pv1_current_sensor` … `pv4_current_sensor` | PV string current A | `sensor` |
-| `pv1_voltage_sensor` … `pv4_voltage_sensor` | PV string voltage V | `sensor` |
 
 **Visual Effects**
 
