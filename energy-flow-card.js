@@ -41,7 +41,7 @@ class EnergyFlowCardEditor extends HTMLElement {
       { name: 'battery_soc_sensor', label: 'Battery State of Charge (%)', selector: { entity: { domain: 'sensor' } } },
       { name: 'load_power_sensor', label: 'Home Load Power (kW)', selector: { entity: { domain: 'sensor' } } },
       { name: 'inverter_state_sensor', label: 'Inverter State', selector: { entity: { domain: 'sensor' } } },
-      { name: 'work_mode_select', label: 'Work Mode (select entity)', selector: { entity: { domain: 'select' } } },
+      { name: 'work_mode_select', label: 'Work Mode select (tap mode label to change)', selector: { entity: { domain: 'select' } } },
       { name: 'solar_label', label: 'Solar label (default: GEN LOAD)', selector: { text: {} } },
       { name: 'solar_generation_sensor', label: 'Solar Generation / Gen Load (kW)', selector: { entity: { domain: 'sensor' } } },
       // -- Section: EV Charger --------------------------------------------
@@ -59,7 +59,7 @@ class EnergyFlowCardEditor extends HTMLElement {
       { name: 'inverter_fault_sensor', label: 'Inverter Fault Code', selector: { entity: { domain: 'sensor' } } },
       // -- Section: Visual Effects -----------------------------------------
       { name: '_section_vis', type: 'constant', label: 'Visual Effects', required: false },
-      { name: 'weather_entity', label: 'Weather Entity (for cloud/rain effects)', selector: { entity: { domain: 'weather' } } },
+      { name: 'weather_entity', label: 'Weather Entity (for weather effects)', selector: { entity: { domain: 'weather' } } },
       { name: 'sun_entity', label: 'Sun Entity (day/night cycle)', selector: { entity: { domain: 'sun' } } },
       { name: 'background_image', label: 'Background Image URL (e.g. /local/energy-house.png)', selector: { text: {} } },
     ];
@@ -75,7 +75,7 @@ class EnergyFlowCardEditor extends HTMLElement {
       { key: 'battery_soc_sensor', label: 'Battery State of Charge (%)', placeholder: 'sensor.foxessinverter_battery_soc' },
       { key: 'load_power_sensor', label: 'Home Load Power (kW)', placeholder: 'sensor.foxessinverter_load_power' },
       { key: 'inverter_state_sensor', label: 'Inverter State (on/off grid)', placeholder: 'sensor.foxessinverter_inverter_state' },
-      { key: 'work_mode_select', label: 'Work Mode (select entity)', placeholder: 'select.foxessinverter_work_mode' },
+      { key: 'work_mode_select', label: 'Work Mode select (tap mode label to change)', placeholder: 'select.foxessinverter_work_mode' },
       { key: 'solar_label', label: 'Solar label (default: GEN LOAD)', placeholder: 'GEN LOAD' },
       { key: 'solar_generation_sensor', label: 'Solar Generation (kW)', placeholder: 'sensor.foxessinverter_genload' },
       { section: 'EV Charger' },
@@ -89,7 +89,7 @@ class EnergyFlowCardEditor extends HTMLElement {
       { key: 'battery_soh_sensor', label: 'Battery State of Health (%)', placeholder: 'sensor.foxessinverter_battery_soh' },
       { key: 'inverter_fault_sensor', label: 'Inverter Fault Code', placeholder: 'sensor.foxessinverter_inverter_fault_code' },
       { section: 'Visual Effects' },
-      { key: 'weather_entity', label: 'Weather Entity (for cloud/rain effects)', placeholder: 'weather.your_location_hourly' },
+      { key: 'weather_entity', label: 'Weather Entity (for weather effects)', placeholder: 'weather.your_location_hourly' },
       { key: 'sun_entity', label: 'Sun Entity (day/night cycle)', placeholder: 'sun.sun' },
     ];
   }
@@ -291,6 +291,88 @@ class EnergyFlowCard extends HTMLElement {
     };
     bind('[data-action="toggle-effects"]', () => this._toggleEffects(dayCycleOn));
     bind('[data-action="toggle-details"]', () => this._toggleDetails(overlayVisible));
+    bind('[data-action="change-work-mode"]', () => this._openWorkModePicker());
+  }
+
+  _openWorkModePicker() {
+    const entityId = this._config?.work_mode_select;
+    if (!entityId || !this._hass) return;
+    const stateObj = this._hass.states[entityId];
+    const options = stateObj?.attributes?.options;
+    if (!Array.isArray(options) || !options.length) {
+      this.dispatchEvent(new CustomEvent('hass-more-info', {
+        detail: { entityId },
+        bubbles: true,
+        composed: true,
+      }));
+      return;
+    }
+
+    const existing = this.shadowRoot?.querySelector('.work-mode-picker');
+    if (existing) {
+      existing.remove();
+      return;
+    }
+
+    const current = stateObj.state;
+    const menu = document.createElement('div');
+    menu.className = 'work-mode-picker';
+    menu.setAttribute('role', 'listbox');
+    menu.style.cssText = [
+      'position:absolute', 'left:12px', 'right:12px', 'bottom:58px', 'z-index:20',
+      'max-height:220px', 'overflow:auto', 'padding:6px',
+      'background:rgba(20,22,30,0.96)', 'border:1px solid rgba(255,255,255,0.12)',
+      'border-radius:8px', 'box-shadow:0 8px 24px rgba(0,0,0,0.45)',
+      'font-family:sans-serif',
+    ].join(';');
+
+    options.forEach(option => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('role', 'option');
+      btn.textContent = option;
+      const selected = option === current;
+      btn.style.cssText = [
+        'display:block', 'width:100%', 'text-align:left', 'border:none',
+        'background:' + (selected ? 'rgba(52,211,153,0.18)' : 'transparent'),
+        'color:' + (selected ? '#34d399' : '#e5e7eb'),
+        'padding:10px 12px', 'margin:0 0 2px', 'border-radius:6px',
+        'font-size:13px', 'font-weight:' + (selected ? '700' : '500'),
+        'cursor:pointer',
+      ].join(';');
+      btn.addEventListener('click', event => {
+        event.stopPropagation();
+        this._setWorkMode(option);
+        menu.remove();
+      });
+      menu.appendChild(btn);
+    });
+
+    const host = this.shadowRoot?.querySelector('ha-card') || this.shadowRoot;
+    if (!host) return;
+    if (host !== this.shadowRoot) {
+      const pos = getComputedStyle(host).position;
+      if (pos === 'static' || !pos) host.style.position = 'relative';
+    }
+    host.appendChild(menu);
+
+    const close = event => {
+      const path = event.composedPath ? event.composedPath() : [];
+      if (path.includes(menu)) return;
+      if (path.some(el => el?.getAttribute?.('data-action') === 'change-work-mode')) return;
+      menu.remove();
+      this.shadowRoot?.removeEventListener('click', close);
+    };
+    setTimeout(() => this.shadowRoot?.addEventListener('click', close), 0);
+  }
+
+  _setWorkMode(option) {
+    const entityId = this._config?.work_mode_select;
+    if (!entityId || !this._hass || !option) return;
+    this._hass.callService('select', 'select_option', {
+      entity_id: entityId,
+      option,
+    });
   }
 
   //  Sensor helpers 
@@ -391,11 +473,16 @@ class EnergyFlowCard extends HTMLElement {
       ? _ovHelper.state === 'on'
       : this._getStoredFlag('energy_details_visible', false);
     const weatherState   = ss(c.weather_entity, '').toLowerCase();
-    const weatherRainy   = weatherState === 'rainy' || weatherState === 'lightning-rainy';
-    const weatherCloudy  = weatherState === 'cloudy';
+    const weatherLightning = weatherState === 'lightning-rainy' || weatherState === 'lightning';
+    const weatherRainy   = weatherState === 'rainy' || weatherState === 'pouring' || weatherState === 'lightning-rainy';
+    const weatherSnowy   = weatherState === 'snowy' || weatherState === 'snowy-rainy';
+    const weatherHail    = weatherState === 'hail';
+    const weatherWindy   = weatherState === 'windy' || weatherState === 'windy-variant';
     const weatherFoggy   = weatherState === 'fog';
-    const weatherOverlay = dayCycleOn && (weatherRainy || weatherCloudy || weatherFoggy);
-    const weatherActive  = weatherRainy || weatherCloudy || weatherFoggy;
+    const weatherCloudy  = weatherState === 'cloudy' || weatherState === 'windy-variant' || weatherState === 'partlycloudy';
+    const weatherStormy  = weatherRainy || weatherHail || weatherLightning;
+    const weatherOverlay = dayCycleOn && (weatherRainy || weatherSnowy || weatherHail || weatherWindy || weatherCloudy || weatherFoggy || weatherLightning);
+    const weatherActive  = weatherRainy || weatherSnowy || weatherHail || weatherWindy || weatherFoggy || weatherCloudy || weatherLightning;
     const solarLabel     = c.solar_label || 'GEN LOAD';
     const bgIsDay        = sunElevation >= 0 && sunState !== 'below_horizon';
     const bgImageKey     = `${bgIsDay ? 'day' : 'night'}_${evcPluggedIn ? 'with_ev' : 'no_ev'}`;
@@ -745,7 +832,8 @@ class EnergyFlowCard extends HTMLElement {
     //  Weather clouds 
     let _wSvg = '', _wKf = '';
     if (weatherActive && !weatherFoggy) {
-      const _wDefs = weatherRainy ? [
+      const _wStormClouds = weatherStormy || weatherSnowy;
+      const _wDefs = _wStormClouds ? [
         ['cblur', 52, 0.92, 83, 0.072, 0.58, 5, 95, [[-50,-14,22],[-22,-26,30],[8,-24,28],[38,-16,24],[62,-5,16]]],
         ['cblur', 46, 0.88, 89, 0.040, 0.53, 5, 95, [[-46,-13,21],[-20,-24,28],[8,-22,26],[36,-14,22],[58,-4,15]]],
         ['cblur', 44, 0.85, 97, 0.218, 0.54, 6, 94, [[-44,-12,19],[-18,-22,25],[10,-20,23],[34,-11,19],[54,-3,13]]],
@@ -770,16 +858,18 @@ class EnergyFlowCard extends HTMLElement {
         ['cfar',  62, 0.52, 149, 0.617, 0.36, 10, 90, [[-17,-9,11],[0,-14,14],[17,-9,11],[30,-4,8]]],
         ['cblur', 74, 0.70, 167, 0.312, 0.42,  8, 92, [[-30,-8,14],[-8,-15,18],[10,-13,16],[28,-6,12]]],
       ];
-      const _wDarken = weatherRainy ? 0.48 : 0.74;
+      const _wDarken = weatherStormy ? 0.48 : weatherSnowy ? 0.88 : 0.74;
       const _wCR  = Math.max(0, Math.round(_cR * _wDarken));
       const _wCG  = Math.max(0, Math.round(_cG * _wDarken));
-      const _wCB  = Math.max(0, Math.round(_cB * (weatherRainy ? 0.52 : 0.78)));
+      const _wCB  = Math.max(0, Math.round(_cB * (weatherStormy ? 0.52 : weatherSnowy ? 0.92 : 0.78)));
       const _wFl  = `rgba(${_wCR},${_wCG},${_wCB},0.95)`;
       const _wSh  = `rgba(${Math.max(0,_wCR-30)},${Math.max(0,_wCG-25)},${Math.min(255,_wCB+8)},0.55)`;
-      const _wBase = weatherRainy ? 0.55 : 0.42;
+      const _wBase = weatherStormy ? 0.55 : weatherSnowy ? 0.48 : 0.42;
+      const _wSpeed = weatherWindy ? 0.55 : 1;
       for (let i = 0; i < _wDefs.length; i++) {
-        const [flt, y, sc, dur, pf, opF, fi, fo, bl] = _wDefs[i];
-        const op  = parseFloat(Math.min(0.95, _wBase * opF * (weatherRainy ? 1.8 : 1.5)).toFixed(3));
+        const [flt, y, sc, dur0, pf, opF, fi, fo, bl] = _wDefs[i];
+        const dur = Math.max(28, dur0 * _wSpeed);
+        const op  = parseFloat(Math.min(0.95, _wBase * opF * (weatherStormy ? 1.8 : 1.5)).toFixed(3));
         const del = -((_cNowSec + dur * pf) % dur);
         const fiPeak = Math.min(fi + 8, fo - 8);
         const foPeak = Math.max(fo - 6, fi + 9);
@@ -810,6 +900,104 @@ class EnergyFlowCard extends HTMLElement {
           `<line x1="${rx.toFixed(1)}" y1="${(-rlen).toFixed(1)}" x2="${(rx+rdx).toFixed(1)}" y2="0" ` +
           `stroke="rgba(174,200,225,${rop})" stroke-width="0.9" stroke-linecap="round"/></g>`;
       }
+    }
+
+
+    //  Snow 
+    let _snowSvg = '', _sKf = '';
+    if (weatherSnowy) {
+      let _sRng = 0xA1B2C3;
+      const _sLcg = () => { _sRng = ((_sRng * 1664525 + 1013904223) & 0xFFFFFFFF) >>> 0; return _sRng / 0xFFFFFFFF; };
+      for (let i = 0; i < 36; i++) {
+        const sx   = _sLcg() * 620 - 10;
+        const sr   = parseFloat((1.2 + _sLcg() * 2.2).toFixed(2));
+        const sop  = parseFloat((0.35 + _sLcg() * 0.45).toFixed(3));
+        const sdur = parseFloat((2.8 + _sLcg() * 3.4).toFixed(2));
+        const spf  = _sLcg();
+        const sdel = parseFloat(-((_cNowSec + sdur * spf) % sdur).toFixed(2));
+        const sdx  = parseFloat((18 + _sLcg() * 28).toFixed(1));
+        _sKf += `@keyframes sf${i}{0%{transform:translate(0,-30px);opacity:0}12%{opacity:${sop}}88%{opacity:${sop}}100%{transform:translate(${sdx}px,420px);opacity:0}}`;
+        _snowSvg += `<circle cx="${sx.toFixed(1)}" cy="0" r="${sr}" fill="rgba(255,255,255,${sop})" ` +
+          `style="animation:sf${i} ${sdur}s ${sdel}s linear infinite"/>`;
+      }
+    }
+
+    //  Hail 
+    let _hailSvg = '', _hKf = '';
+    if (weatherHail) {
+      let _hRng = 0xD4E5F6;
+      const _hLcg = () => { _hRng = ((_hRng * 1664525 + 1013904223) & 0xFFFFFFFF) >>> 0; return _hRng / 0xFFFFFFFF; };
+      for (let i = 0; i < 28; i++) {
+        const hx   = _hLcg() * 620 - 10;
+        const hr   = parseFloat((2.0 + _hLcg() * 2.8).toFixed(2));
+        const hop  = parseFloat((0.55 + _hLcg() * 0.35).toFixed(3));
+        const hdur = parseFloat((0.35 + _hLcg() * 0.45).toFixed(2));
+        const hpf  = _hLcg();
+        const hdel = parseFloat(-((_cNowSec + hdur * hpf) % hdur).toFixed(2));
+        const hdx  = parseFloat((6 + _hLcg() * 10).toFixed(1));
+        _hKf += `@keyframes hf${i}{0%{transform:translate(0,-40px)}100%{transform:translate(${hdx}px,440px)}}`;
+        _hailSvg += `<circle cx="${hx.toFixed(1)}" cy="0" r="${hr}" fill="rgba(220,228,240,${hop})" ` +
+          `stroke="rgba(160,175,195,0.55)" stroke-width="0.6" ` +
+          `style="animation:hf${i} ${hdur}s ${hdel}s linear infinite"/>`;
+      }
+    }
+
+    //  Wind gusts 
+    let _windSvg = '', _wiKf = '';
+    if (weatherWindy) {
+      let _wiRng = 0xB7C8D9;
+      const _wiLcg = () => { _wiRng = ((_wiRng * 1664525 + 1013904223) & 0xFFFFFFFF) >>> 0; return _wiRng / 0xFFFFFFFF; };
+      for (let i = 0; i < 18; i++) {
+        const wy   = 40 + _wiLcg() * 140;
+        const wlen = parseFloat((40 + _wiLcg() * 90).toFixed(1));
+        const wop  = parseFloat((0.10 + _wiLcg() * 0.18).toFixed(3));
+        const wdur = parseFloat((0.9 + _wiLcg() * 1.4).toFixed(2));
+        const wpf  = _wiLcg();
+        const wdel = parseFloat(-((_cNowSec + wdur * wpf) % wdur).toFixed(2));
+        const wsw  = parseFloat((0.7 + _wiLcg() * 0.8).toFixed(2));
+        _wiKf += `@keyframes wf${i}{0%{transform:translateX(-80px);opacity:0}20%{opacity:${wop}}80%{opacity:${wop}}100%{transform:translateX(680px);opacity:0}}`;
+        _windSvg += `<line x1="0" y1="${wy.toFixed(1)}" x2="${wlen}" y2="${wy.toFixed(1)}" ` +
+          `stroke="rgba(210,220,235,${wop})" stroke-width="${wsw}" stroke-linecap="round" ` +
+          `style="animation:wf${i} ${wdur}s ${wdel}s linear infinite"/>`;
+      }
+    }
+
+    //  Fog bands 
+    let _fogSvg = '', _fKf = '';
+    if (weatherFoggy) {
+      const _fogBands = [
+        [90, 55, 0.22, 48, 0.12],
+        [150, 70, 0.18, 62, 0.41],
+        [210, 48, 0.16, 55, 0.73],
+      ];
+      for (let i = 0; i < _fogBands.length; i++) {
+        const [cy, ry, op, dur, pf] = _fogBands[i];
+        const del = parseFloat(-((_cNowSec + dur * pf) % dur).toFixed(2));
+        _fKf += `@keyframes fg${i}{0%{transform:translateX(-200px);opacity:0}25%{opacity:${op}}75%{opacity:${op}}100%{transform:translateX(200px);opacity:0}}`;
+        _fogSvg += `<ellipse cx="300" cy="${cy}" rx="340" ry="${ry}" fill="rgba(210,215,225,${op})" ` +
+          `filter="url(#cblur)" style="animation:fg${i} ${dur}s ${del}s ease-in-out infinite"/>`;
+      }
+    }
+
+    //  Lightning flashes 
+    let _boltSvg = '', _bKf = '';
+    if (weatherLightning) {
+      const _bolts = [
+        [140, 20, 168, 78, 152, 78, 185, 145, 1.8, 0.12],
+        [310, 12, 338, 70, 322, 70, 355, 138, 2.4, 0.48],
+        [470, 28, 492, 82, 480, 82, 508, 150, 3.1, 0.76],
+      ];
+      for (let i = 0; i < _bolts.length; i++) {
+        const [x1, y1, x2, y2, x3, y3, x4, y4, dur, pf] = _bolts[i];
+        const del = parseFloat(-((_cNowSec + dur * pf) % dur).toFixed(2));
+        _bKf += `@keyframes bolt${i}{0%,84%,100%{opacity:0}86%{opacity:0.95}88%{opacity:0.15}90%{opacity:0.85}92%{opacity:0}}`;
+        _boltSvg += `<polyline points="${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}" fill="none" ` +
+          `stroke="rgba(230,240,255,0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ` +
+          `filter="url(#stglow)" style="animation:bolt${i} ${dur}s ${del}s linear infinite"/>`;
+      }
+      _bKf += `@keyframes stormFlash{0%,82%,100%{opacity:0}84%{opacity:0.22}86%{opacity:0}88%{opacity:0.12}90%{opacity:0}}`;
+      _boltSvg = `<rect width="600" height="230" fill="rgba(220,230,255,0.55)" clip-path="url(#rclip)" ` +
+        `style="animation:stormFlash 2.6s linear infinite"/>` + _boltSvg;
     }
 
     //  Sky gradient stops 
@@ -915,6 +1103,11 @@ class EnergyFlowCard extends HTMLElement {
                 ${_cKf}
                 ${_wKf}
                 ${_rKf}
+                ${_sKf}
+                ${_hKf}
+                ${_wiKf}
+                ${_fKf}
+                ${_bKf}
               </style>
               <linearGradient id="skyCycleGrad" x1="0" y1="0" x2="0" y2="1.0">
                 <stop offset="0%"       stop-color="#14141D" stop-opacity="1"/>
@@ -938,12 +1131,16 @@ class EnergyFlowCard extends HTMLElement {
 
             ${weatherActive ? `<g style="${_dcStyle}">
               ${weatherFoggy
-                ? `<rect width="600" height="400" fill="rgba(200,205,215,0.30)" clip-path="url(#rclip)"/>`
-                : weatherRainy
+                ? `<rect width="600" height="400" fill="rgba(200,205,215,0.22)" clip-path="url(#rclip)"/>`
+                : (weatherStormy || weatherSnowy)
                   ? `<rect width="600" height="230" fill="url(#wOverlayFade)" clip-path="url(#rclip)"/>`
                   : `<rect width="600" height="230" fill="rgba(50,55,72,0.24)" clip-path="url(#rclip)"/>`}
-              ${!weatherFoggy ? `<g clip-path="url(#rclip)">${_wSvg}</g>` : ''}
+              ${weatherFoggy ? `<g clip-path="url(#rclip)">${_fogSvg}</g>` : `<g clip-path="url(#rclip)">${_wSvg}</g>`}
+              ${weatherSnowy ? `<g clip-path="url(#rainclip)">${_snowSvg}</g>` : ''}
+              ${weatherHail ? `<g clip-path="url(#rainclip)">${_hailSvg}</g>` : ''}
+              ${weatherWindy ? `<g clip-path="url(#rainclip)">${_windSvg}</g>` : ''}
               ${weatherRainy ? `<g clip-path="url(#rainclip)">${_rainSvg}</g>` : ''}
+              ${weatherLightning ? `<g clip-path="url(#rainclip)">${_boltSvg}</g>` : ''}
             </g>` : ''}
 
             <image href="${bgImage}"
@@ -1007,7 +1204,7 @@ class EnergyFlowCard extends HTMLElement {
                 fill="${inv_fault === 'None' ? '#34d399' : inv_fault === '0' || inv_fault === 'N/A' ? '#6b7280' : '#f87171'}">${inv_fault}</text>` : ''}
               ${c.weather_entity ? `<text x="585" y="94" text-anchor="end" font-family="sans-serif" font-size="10" letter-spacing="1.2" fill="#ccc">Weather</text>
               <text x="585" y="110" text-anchor="end" font-family="sans-serif" font-weight="700" font-size="14"
-                fill="${weatherRainy ? '#93c5fd' : weatherCloudy ? '#d1d5db' : weatherFoggy ? '#e5e7eb' : '#34d399'}">${weatherState || 'clear'}</text>` : ''}
+                fill="${weatherLightning ? '#c4b5fd' : weatherRainy ? '#93c5fd' : weatherSnowy ? '#e2e8f0' : weatherHail ? '#cbd5e1' : weatherWindy ? '#a5b4fc' : weatherCloudy ? '#d1d5db' : weatherFoggy ? '#e5e7eb' : '#34d399'}">${weatherState || 'clear'}</text>` : ''}
             </g>` : ''}
 
             ${evcVisible ? `<g class="evc-metrics">
@@ -1063,7 +1260,8 @@ class EnergyFlowCard extends HTMLElement {
                 </div>
                 <div style="grid-column:1/-1;margin-top:6px;padding:6px 0 0 12px;display:flex;align-items:center;gap:8px;">
                   <span style="font-size:11px;color:#6b7280;letter-spacing:1.2px;text-transform:uppercase;">Inverter Mode</span>
-                  <span style="font-size:13px;font-weight:600;color:${forceCharge ? '#93c5fd' : '#34d399'};${forceCharge ? 'animation:pulseBlue 2.5s ease-in-out infinite;' : solarCharging ? 'animation:pulseGreen 2.5s ease-in-out infinite;' : ''}">${workMode}</span>
+                  <span data-action="change-work-mode" role="button" tabindex="0" title="Change inverter work mode"
+                    style="font-size:13px;font-weight:600;color:${forceCharge ? '#93c5fd' : '#34d399'};cursor:${c.work_mode_select ? 'pointer' : 'default'};text-decoration:${c.work_mode_select ? 'underline dotted' : 'none'};text-underline-offset:3px;${forceCharge ? 'animation:pulseBlue 2.5s ease-in-out infinite;' : solarCharging ? 'animation:pulseGreen 2.5s ease-in-out infinite;' : ''}">${workMode}</span>
                 </div>
               </div>
             </foreignObject>

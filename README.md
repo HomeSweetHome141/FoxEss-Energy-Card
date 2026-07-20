@@ -16,7 +16,7 @@ Best used if you are using the [FoxESS - Modbus](https://github.com/nathanmarlor
 - Keep it clean or enable optional overlays for detailed monitoring.
 - Animated energy flow on solar, battery, grid and home wires
 - Day/night sky gradient linked to Home Assistant's `sun.sun` entity
-- Live weather clouds and rain overlay (sunny/Rainy/Cloudy states)
+- Live weather effects: rain, storm/lightning, pouring, snow, hail, wind, fog, cloudy / partly cloudy
 - Optional EV charger power and status metrics above the garage
 - Built-in day/night and EV plugged/unplugged background variants
 - Detail overlay: system temps, fault codes, battery health and more
@@ -123,7 +123,7 @@ sun_entity: sun.sun
 | `battery_soc_sensor` | Battery state of charge **%** | `sensor` |
 | `load_power_sensor` | Home load power in **kW** | `sensor` |
 | `inverter_state_sensor` | Inverter state string | `sensor` |
-| `work_mode_select` | Work mode select entity | `select` |
+| `work_mode_select` | Work mode select entity. Tap the **Inverter Mode** value on the card to pick a new option (`select.select_option`) | `select` |
 | `solar_label` | Label shown above the solar node (default: `GEN LOAD`) | string |
 | `solar_generation_sensor` | Solar generation in **kW** | `sensor` |
 
@@ -153,7 +153,7 @@ sun_entity: sun.sun
 
 | Key | Description | Domain |
 |-----|-------------|--------|
-| `weather_entity` | Weather entity for cloud/rain effects. I use the BOM integration. it just needs to be a sensor that returns "Sunny" or "rainy" or "cloudy" keywords | `weather` |
+| `weather_entity` | Weather entity for animated sky effects. Uses standard HA conditions: `rainy`, `pouring`, `lightning`, `lightning-rainy` (storm), `snowy`, `snowy-rainy`, `hail`, `windy`, `windy-variant`, `fog`, `cloudy`, `partlycloudy` | `weather` |
 | `sun_entity` | Home Assistant sun entity used for day/night sky cycle | `sun` |
 | `background_image` | Optional static background URL. If set, it overrides the built-in day/night and EV background variants. | string |
 
